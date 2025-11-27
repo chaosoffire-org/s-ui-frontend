@@ -1,4 +1,5 @@
 import RandomUtil from "@/plugins/randomUtil"
+import { Inbound } from "@/types/inbounds"
 
 export interface Link {
   type: "local" | "external" | "sub"
@@ -8,13 +9,13 @@ export interface Link {
 
 export interface Client {
   id?: number
-	enable: boolean
-	name: string
-	config?: Config
-	inbounds: number[]
+  enable: boolean
+  name: string
+  config?: Config
+  inbounds: number[]
   links?: Link[]
-	volume: number
-	expiry: number
+  volume: number
+  expiry: number
   up: number
   down: number
   desc: string
@@ -95,72 +96,55 @@ export function shuffleConfigs(configs: Config, key?: string) {
 }
 
 export function randomConfigs(user: string): Config {
-  const mixedPassword = RandomUtil.randomSeq(10)
-  const ssPassword16 = RandomUtil.randomShadowsocksPassword(16)
-  const ssPassword32 = RandomUtil.randomShadowsocksPassword(32)
-  const uuid = RandomUtil.randomUUID()
-  return {
+  const config: Config = {
     mixed: {
       username: user,
-      password: mixedPassword,
     },
     socks: {
       username: user,
-      password: mixedPassword,
     },
     http: {
       username: user,
-      password: mixedPassword,
     },
     shadowsocks: {
       name: user,
-      password: ssPassword32,
     },
     shadowsocks16: {
       name: user,
-      password: ssPassword16,
     },
     shadowtls: {
       name: user,
-      password: ssPassword32,
     },
     vmess: {
       name: user,
-      uuid: uuid,
       alterId: 0,
     },
     vless: {
       name: user,
-      uuid: uuid,
       flow: "xtls-rprx-vision",
       flow_inbound_tags: [],
     },
     anytls: {
       name: user,
-      password: mixedPassword,
     },
     trojan: {
       name: user,
-      password: mixedPassword,
     },
     naive: {
       username: user,
-      password: mixedPassword,
     },
     hysteria: {
       name: user,
-      auth_str: mixedPassword,
     },
     tuic: {
       name: user,
-      uuid: uuid,
-      password: mixedPassword,
     },
     hysteria2: {
       name: user,
-      password: mixedPassword,
     },
   }
+  shuffleConfigs(config)
+  return config
 }
 
 export function createClient<T extends Client>(json?: Partial<T>): Client {
@@ -169,6 +153,18 @@ export function createClient<T extends Client>(json?: Partial<T>): Client {
 
   // Add missing config
   defaultObject.config = { ...randomConfigs(defaultObject.name), ...defaultObject.config }
-  
+
   return defaultObject
+}
+
+export function getVlessInboundTags(inbounds: Inbound[], clientInboundIds: number[], tls: boolean) {
+  if (!inbounds || !clientInboundIds) {
+    return []
+  }
+
+  return inbounds
+    .filter(inbound => clientInboundIds.includes(inbound.id))
+    .filter(inbound => inbound.type === 'vless')
+    .filter(inbound => tls ? inbound.tls_id > 0 : true)
+    .map(inbound => ({ value: inbound.tag, title: inbound.tag }));
 }
