@@ -18,17 +18,37 @@ const RandomUtil = {
     const random = (highbits * 2 ** 21 + lowbits) / (Number.MAX_SAFE_INTEGER + 1)
     return Math.floor(random * (max - min + 1) + min)
   },
-  randomInt(n: number) {
+  randomInt(n: number): number {
     return this.randomIntRange(0, n)
   },
+  // This will work for seq with length < 256
   randomSeq(count: number): string {
     if (count <= 0) {
       return ''
     }
-    let str = ''
-    for (let i = 0; i < count; ++i) {
-        str += seq[this.randomInt(62)]
+    const chars = seq
+    const charsLen = chars.length
+    if (charsLen < 1 || charsLen > 256) {
+      throw new Error('Character set must be between 1 and 256 characters.')
     }
+    const limit = 256 - (256 % charsLen);
+    const p = limit / 256;
+
+    // Calculate buffer size for 95% confidence (z = 1.645)
+    const safetyFactor = 1.645;
+    const MAX_BYTES = 65536;
+    const expectedBytes = Math.ceil((count + safetyFactor * Math.sqrt(count * (1 - p))) / p)
+    const bufferSize = Math.min(expectedBytes, MAX_BYTES)
+    const cache = new Uint8Array(bufferSize)
+    let str = ''
+    do {
+      window.crypto.getRandomValues(cache)
+      for (let i = 0; i < bufferSize && str.length < count; i++) {
+        if (cache[i] < limit) {
+          str += chars[cache[i] % charsLen]
+        }
+      }
+    } while (str.length < count)
     return str
   },
   randomLowerAndNum(count: number): string {
@@ -40,6 +60,29 @@ const RandomUtil = {
         str += seq[this.randomInt(36)]
     }
     return str
+  },
+  randomBase64(size: number): string {
+    if (size <= 0) {
+      return ''
+    }
+    const array = new Uint8Array(size)
+    window.crypto.getRandomValues(array)
+    let binary = '';
+    const len = array.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(array[i]);
+    }
+    return btoa(binary);
+  },
+  randomHex(size: number): string {
+    if (size <= 0) return '';
+    const rng = new Uint8Array(size);
+    window.crypto.getRandomValues(rng);
+    let hex = '';
+    for (let i = 0; i < size; i++) {
+      hex += byteToHex[rng[i]];
+    }
+    return hex;
   },
   randomUUID(): string {
     const rng = new Uint8Array(16);
@@ -55,20 +98,33 @@ const RandomUtil = {
       byteToHex[rng[13]] + byteToHex[rng[14]] + byteToHex[rng[15]]
     );
   },
-  randomShadowsocksPassword(n: number): string {
-    const array = new Uint8Array(n)
-    window.crypto.getRandomValues(array)
-    return btoa(String.fromCharCode(...array))
+  randomShadowsocksPassword(n: 16 | 32): string {
+    return this.randomBase64(n)
   },
-  randomShortId(): string[] {
-    let shortIds = new Array(24).fill('')
-    for (var ii = 1; ii < 24; ii++) {
-      for (var jj = 0; jj <= this.randomInt(7); jj++){
-          let randomNum = this.randomInt(256)
-          shortIds[ii] += ('0' + randomNum.toString(16)).slice(-2)
+  randomShortId(count: number = 24): string[] {
+    const ids: string[] = new Array(count);
+    const lengthBytes = new Uint8Array(count);
+    window.crypto.getRandomValues(lengthBytes);
+    let totalBytes = 0;
+    const lengths = new Int8Array(count);
+    for (let i = 0; i < count; i++) {
+      const len = (lengthBytes[i] & 0x07) + 1;
+      lengths[i] = len;
+      totalBytes += len;
+    }
+
+    const rng = new Uint8Array(totalBytes);
+    window.crypto.getRandomValues(rng);
+    let offset = 0;
+    for (let i = 0; i < count; i++) {
+      let hex = '';
+      const len = lengths[i];
+      for (let j = 0; j < len; j++) {
+        hex += byteToHex[rng[offset++]];
       }
-  }
-  return shortIds
+      ids[i] = hex;
+    }
+    return ids;
   }
 }
 
