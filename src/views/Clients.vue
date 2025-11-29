@@ -81,6 +81,9 @@
         :hide-default-footer="filterSettings.enabled ? filterSettings.filteredClients.length <= 10 : clients.length <= 10"
         :items-per-page="itemPerPage" @update:items-per-page="setItemPerPage($event)" hide-no-data fixed-header
         item-value="name" :mobile="smAndDown" mobile-breakpoint="sm" width="100%" class="elevation-3 rounded">
+        <template v-slot:item.name="{ item }">
+          {{ item.name.replace(/-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, '') }}
+        </template>
         <template v-slot:item.inbounds="{ item }">
           <span>
             <v-tooltip activator="parent" dir="ltr" location="start" v-if="item.inbounds != ''">
