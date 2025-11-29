@@ -1,32 +1,11 @@
 <template>
-  <ClientModal 
-    v-model="modal.visible"
-    :visible="modal.visible"
-    :id="modal.id"
-    :groups="groups"
-    :inboundTags="inboundTags"
-    @close="closeModal"
-  />
-  <ClientBulk 
-    v-model="addBulkModal"
-    :visible="addBulkModal"
-    :groups="groups"
-    :inboundTags="inboundTags"
-    @close="closeBulk"
-  />
-  <QrCode
-    v-model="qrcode.visible"
-    :visible="qrcode.visible"
-    :id="qrcode.id"
-    @close="closeQrCode"
-  />
-  <Stats
-    v-model="stats.visible"
-    :visible="stats.visible"
-    :resource="stats.resource"
-    :tag="stats.tag"
-    @close="closeStats"
-  />
+  <ClientModal v-model="modal.visible" :visible="modal.visible" :id="modal.id" :groups="groups"
+    :inboundTags="inboundTags" @close="closeModal" />
+  <ClientBulk v-model="addBulkModal" :visible="addBulkModal" :groups="groups" :inboundTags="inboundTags"
+    @close="closeBulk" />
+  <QrCode v-model="qrcode.visible" :visible="qrcode.visible" :id="qrcode.id" @close="closeQrCode" />
+  <Stats v-model="stats.visible" :visible="stats.visible" :resource="stats.resource" :tag="stats.tag"
+    @close="closeStats" />
   <v-row justify="center" align="center">
     <v-col cols="auto">
       <v-btn color="primary" @click="showModal(0)">{{ $t('actions.add') }}</v-btn>
@@ -52,40 +31,31 @@
       <v-menu v-model="filterMenu" :close-on-content-click="false" location="bottom center">
         <template v-slot:activator="{ props }">
           <v-btn v-bind="props" hide-details variant="text" icon>
-            <v-icon :icon="filterSettings.enabled ? 'mdi-filter-check-outline' : 'mdi-filter-menu-outline'" :color="filterSettings.enabled ? 'primary' : ''" />
+            <v-icon :icon="filterSettings.enabled ? 'mdi-filter-check-outline' : 'mdi-filter-menu-outline'"
+              :color="filterSettings.enabled ? 'primary' : ''" />
           </v-btn>
         </template>
         <v-card>
           <v-container>
             <v-row>
               <v-col>
-                <v-select
-                variant="underlined"
-                density="compact"
-                :label="$t('type')"
-                :items="filterItems"
-                v-model="filterSettings.state">
+                <v-select variant="underlined" density="compact" :label="$t('type')" :items="filterItems"
+                  v-model="filterSettings.state">
                 </v-select>
               </v-col>
             </v-row>
             <v-row>
               <v-col>
-                <v-select
-                variant="underlined"
-                density="compact"
-                :label="$t('client.group')"
-                :items="[ {title: $t('all'), value: '-'}, ...groups.map(g => ({ title: g.length>0 ? g : $t('none'), value: g}))]"
-                v-model="filterSettings.group">
+                <v-select variant="underlined" density="compact" :label="$t('client.group')"
+                  :items="[{ title: $t('all'), value: '-' }, ...groups.map(g => ({ title: g.length > 0 ? g : $t('none'), value: g }))]"
+                  v-model="filterSettings.group">
                 </v-select>
               </v-col>
             </v-row>
             <v-row>
               <v-col>
-                <v-text-field
-                variant="underlined"
-                density="compact"
-                :label="$t('client.name')"
-                v-model="filterSettings.text">
+                <v-text-field variant="underlined" density="compact" :label="$t('client.name')"
+                  v-model="filterSettings.text">
                 </v-text-field>
               </v-col>
             </v-row>
@@ -93,18 +63,10 @@
           <v-card-actions>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn
-                color="blue-darken-1"
-                variant="outlined"
-                @click="clearFilter"
-              >
+              <v-btn color="blue-darken-1" variant="outlined" @click="clearFilter">
                 {{ $t('actions.del') }}
               </v-btn>
-              <v-btn
-                color="blue-darken-1"
-                variant="tonal"
-                @click="doFilter"
-              >
+              <v-btn color="blue-darken-1" variant="tonal" @click="doFilter">
                 {{ $t('actions.update') }}
               </v-btn>
             </v-card-actions>
@@ -115,61 +77,36 @@
   </v-row>
   <v-row>
     <v-col cols="12">
-      <v-data-table
-        :headers="headers"
-        :items="filterSettings.enabled ? filterSettings.filteredClients : clients"
-        :hide-default-footer="filterSettings.enabled ? filterSettings.filteredClients.length<=10 : clients.length<=10"
-        :items-per-page="itemPerPage"
-        @update:items-per-page="setItemPerPage($event)"
-        hide-no-data
-        fixed-header
-        item-value="name"
-        :mobile="smAndDown"
-        mobile-breakpoint="sm"
-        width="100%"
-        class="elevation-3 rounded"
-        >
+      <v-data-table :headers="headers" :items="filterSettings.enabled ? filterSettings.filteredClients : clients"
+        :hide-default-footer="filterSettings.enabled ? filterSettings.filteredClients.length <= 10 : clients.length <= 10"
+        :items-per-page="itemPerPage" @update:items-per-page="setItemPerPage($event)" hide-no-data fixed-header
+        item-value="name" :mobile="smAndDown" mobile-breakpoint="sm" width="100%" class="elevation-3 rounded">
         <template v-slot:item.inbounds="{ item }">
           <span>
-          <v-tooltip activator="parent" dir="ltr" location="start" v-if="item.inbounds != ''">
-            <span v-for="i in item.inbounds">{{ inbounds.find(inb => inb.id == i)?.tag }}<br /></span>
-          </v-tooltip>
-          {{ item.inbounds?.length }}
+            <v-tooltip activator="parent" dir="ltr" location="start" v-if="item.inbounds != ''">
+              <span v-for="i in item.inbounds">{{inbounds.find(inb => inb.id == i)?.tag}}<br /></span>
+            </v-tooltip>
+            {{ item.inbounds?.length }}
           </span>
         </template>
         <template v-slot:item.enable="{ item }">
-          <v-switch
-            color="primary"
-            v-model="item.enable"
-            hide-details
-            density="compact"
-            :disabled="isToggleDisabled(item)"
-            @update:model-value="updateClientEnable(item, $event)"
-          ></v-switch>
+          <v-switch color="primary" v-model="item.enable" hide-details density="compact"
+            :disabled="isToggleDisabled(item)" @update:model-value="updateClientEnable(item, $event)"></v-switch>
         </template>
         <template v-slot:item.volume="{ item }">
-          <div class="text-start" v-tooltip:top="$t('stats.usage') + ': ' + HumanReadable.sizeFormat(item.up + item.down)">
-            <v-chip
-              size="small"
-              :color="(item.volume>0 && item.volume<=(item.up + item.down))? 'error': ''"
-              label
-            >{{ item.volume == 0 ? $t('unlimited') : HumanReadable.sizeFormat(item.volume) }}</v-chip>
+          <div class="text-start"
+            v-tooltip:top="$t('stats.usage') + ': ' + HumanReadable.sizeFormat(item.up + item.down)">
+            <v-chip size="small" :color="(item.volume > 0 && item.volume <= (item.up + item.down)) ? 'error' : ''"
+              label>{{
+                item.volume == 0 ? $t('unlimited') : HumanReadable.sizeFormat(item.volume) }}</v-chip>
           </div>
-          <v-progress-linear
-            :model-value="percent(item)"
-            :color="percentColor(item)"
-            v-if="item.volume>0"
-            bottom
-          >
+          <v-progress-linear :model-value="percent(item)" :color="percentColor(item)" v-if="item.volume > 0" bottom>
           </v-progress-linear>
         </template>
         <template v-slot:item.expiry="{ item }">
           <div class="text-start">
-            <v-chip
-              size="small"
-              :color="(item.expiry>0 && item.expiry<=Date.now()/1000)? 'error': ''"
-              label
-            >{{ HumanReadable.remainedDays(item.expiry) }}</v-chip>
+            <v-chip size="small" :color="(item.expiry > 0 && item.expiry <= Date.now() / 1000) ? 'error' : ''" label>{{
+              HumanReadable.remainedDays(item.expiry) }}</v-chip>
           </div>
         </template>
         <template v-slot:item.online="{ item }">
@@ -181,45 +118,33 @@
           </div>
         </template>
         <template v-slot:item.actions="{ item }">
-        <v-icon
-          class="me-2"
-          @click="showModal(item.id)"
-        >
-          mdi-pencil
-        </v-icon>
-        <v-menu
-          v-model="delOverlay[clients.findIndex(c => c.id == item.id)]"
-          :close-on-content-click="false"
-          location="top center"
-        >
-          <template v-slot:activator="{ props }">
-            <v-icon
-              class="me-2"
-              color="error"
-              v-bind="props"
-            >
-              mdi-delete
-            </v-icon>
-          </template>
-          <v-card :title="$t('actions.del')" rounded="lg">
-            <v-divider></v-divider>
-            <v-card-text>{{ $t('confirm') }}</v-card-text>
-            <v-card-actions>
-              <v-btn color="error" variant="outlined" @click="delClient(item.id)">{{ $t('yes') }}</v-btn>
-              <v-btn color="success" variant="outlined" @click="delOverlay[clients.findIndex(c => c.id == item.id)] = false">{{ $t('no') }}</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-menu>
-        <v-icon
-          class="me-2"
-          @click="showQrCode(item.id)"
-        >
-          mdi-qrcode
-        </v-icon>
-        <v-icon icon="mdi-chart-line" @click="showStats(item.name)" v-if="Data().enableTraffic">
-          <v-tooltip activator="parent" location="top" :text="$t('stats.graphTitle')"></v-tooltip>
-        </v-icon>
-      </template>
+          <v-icon class="me-2" @click="showModal(item.id)">
+            mdi-pencil
+          </v-icon>
+          <v-menu v-model="delOverlay[clients.findIndex(c => c.id == item.id)]" :close-on-content-click="false"
+            location="top center">
+            <template v-slot:activator="{ props }">
+              <v-icon class="me-2" color="error" v-bind="props">
+                mdi-delete
+              </v-icon>
+            </template>
+            <v-card :title="$t('actions.del')" rounded="lg">
+              <v-divider></v-divider>
+              <v-card-text>{{ $t('confirm') }}</v-card-text>
+              <v-card-actions>
+                <v-btn color="error" variant="outlined" @click="delClient(item.id)">{{ $t('yes') }}</v-btn>
+                <v-btn color="success" variant="outlined"
+                  @click="delOverlay[clients.findIndex(c => c.id == item.id)] = false">{{ $t('no') }}</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-menu>
+          <v-icon class="me-2" @click="showQrCode(item.id)">
+            mdi-qrcode
+          </v-icon>
+          <v-icon icon="mdi-chart-line" @click="showStats(item.name)" v-if="Data().enableTraffic">
+            <v-tooltip activator="parent" location="top" :text="$t('stats.graphTitle')"></v-tooltip>
+          </v-icon>
+        </template>
       </v-data-table>
     </v-col>
   </v-row>
@@ -229,8 +154,9 @@
   height: fit-content;
   min-height: 36px !important;
 }
+
 .v-data-table__tr--mobile td div {
-  width:max-content;
+  width: max-content;
 }
 </style>
 <script lang="ts" setup>
@@ -412,8 +338,25 @@ const isToggleDisabled = (item: any) => {
 }
 
 const updateClientEnable = async (item: any, value: boolean) => {
+  const originalValue = item.enable
   item.enable = value
-  await Data().save("clients", "edit", item)
+
+  try {
+    const fullClient = await Data().loadClients(item.id)
+    if (!fullClient || !fullClient.id) {
+      throw new Error("Failed to load client data")
+    }
+
+    fullClient.enable = value
+    const success = await Data().save("clients", "edit", fullClient)
+
+    if (!success) {
+      item.enable = originalValue
+    }
+  } catch (e) {
+    console.error(e)
+    item.enable = originalValue
+  }
 }
 
 </script>
