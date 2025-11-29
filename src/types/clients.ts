@@ -69,7 +69,7 @@ export function shuffleConfigs(configs: Config, key?: string) {
       case "trojan":
       case "naive":
       case "hysteria2":
-        configs[k].password = RandomUtil.randomSeq(10)
+        configs[k].password = RandomUtil.randomBase64(32)
         break
       case "shadowsocks":
         configs[k].password = RandomUtil.randomShadowsocksPassword(32)
@@ -81,10 +81,10 @@ export function shuffleConfigs(configs: Config, key?: string) {
         configs[k].password = RandomUtil.randomShadowsocksPassword(32)
         break
       case "hysteria":
-        configs[k].auth_str = RandomUtil.randomSeq(10)
+        configs[k].auth_str = RandomUtil.randomBase64(32)
         break
       case "tuic":
-        configs[k].password = RandomUtil.randomSeq(10)
+        configs[k].password = RandomUtil.randomBase64(32)
         configs[k].uuid = RandomUtil.randomUUID()
         break
       case "vmess":

@@ -27,7 +27,7 @@
               </v-row>
               <v-row>
                 <v-col cols="12" sm="6" md="4">
-                  <v-text-field v-model="client.name" :label="$t('client.name')" hide-details></v-text-field>
+                  <v-text-field v-model="displayName" :label="$t('client.name')" hide-details></v-text-field>
                 </v-col>
                 <v-col cols="12" sm="6" md="4">
                   <v-text-field v-model="client.desc" :label="$t('client.desc')" hide-details></v-text-field>
@@ -157,6 +157,7 @@
 
 <script lang="ts">
 import { createClient, randomConfigs, updateConfigs, Link, shuffleConfigs, getVlessInboundTags } from '@/types/clients'
+import RandomUtil from '@/plugins/randomUtil'
 import DatePick from '@/components/DateTime.vue'
 import { HumanReadable } from '@/plugins/utils'
 import Data from '@/store/modules/data'
@@ -174,6 +175,7 @@ export default {
       links: <Link[]>[],
       extLinks: <Link[]>[],
       subLinks: <Link[]>[],
+      displayName: "",
     }
   },
   methods: {
@@ -201,6 +203,10 @@ export default {
       this.extLinks = this.client.links?.filter(l => l.type == 'external') ?? []
       this.subLinks = this.client.links?.filter(l => l.type == 'sub') ?? []
       this.tab = "t1"
+
+      const uuidRegex = /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      this.displayName = this.client.name.replace(uuidRegex, '');
+
       this.loading = false
     },
     closeModal() {
@@ -209,12 +215,31 @@ export default {
     },
     async saveChanges() {
       if (!this.$props.visible) return
-      // check duplicate name
-      const isDuplicateName = Data().checkClientName(this.$props.id, this.client.name)
-      if (isDuplicateName) return
 
-      // save data
       this.loading = true
+
+      const uuidRegex = /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const originalName = this.client.name;
+      const isLegacy = this.$props.id > 0 && !uuidRegex.test(originalName);
+
+      if (isLegacy) {
+        this.client.name = this.displayName;
+        const isDuplicateName = Data().checkClientName(this.$props.id, this.client.name);
+        if (isDuplicateName) {
+          this.loading = false;
+          return;
+        }
+      } else {
+        const match = originalName.match(uuidRegex);
+        if (match) {
+          // Existing modern client: Keep the original UUID
+          this.client.name = `${this.displayName}${match[0]}`;
+        } else {
+          // New client: Generate a new UUID
+          this.client.name = `${this.displayName}-${RandomUtil.randomUUID()}`;
+        }
+      }
+
       this.client.config = updateConfigs(this.clientConfig, this.client.name)
       this.client.links = [
         ...this.extLinks.filter(l => l.uri != ''),
