@@ -1,4 +1,3 @@
-
 <template>
   <ClientModal 
     v-model="modal.visible"
@@ -138,6 +137,16 @@
           {{ item.inbounds?.length }}
           </span>
         </template>
+        <template v-slot:item.enable="{ item }">
+          <v-switch
+            color="primary"
+            v-model="item.enable"
+            hide-details
+            density="compact"
+            :disabled="isToggleDisabled(item)"
+            @update:model-value="updateClientEnable(item, $event)"
+          ></v-switch>
+        </template>
         <template v-slot:item.volume="{ item }">
           <div class="text-start" v-tooltip:top="$t('stats.usage') + ': ' + HumanReadable.sizeFormat(item.up + item.down)">
             <v-chip
@@ -247,7 +256,7 @@ const isOnline = (cname: string) => computed(() => {
 })
 
 const inbounds = computed((): any[] => {
-  return Data().inbounds?? []
+  return Data().inbounds ?? []
 })
 
 const inboundTags = computed((): any[] => {
@@ -279,6 +288,7 @@ const filterItems = [
 ]
 
 const headers = [
+  { title: i18n.global.t('enable'), key: 'enable', sortable: false },
   { title: i18n.global.t('client.name'), key: 'name' },
   { title: i18n.global.t('client.desc'), key: 'desc' },
   { title: i18n.global.t('client.group'), key: 'group' },
@@ -350,7 +360,7 @@ const doFilter = () => {
   if (filterSettings.value.group != '-') {
     filteredClients = filteredClients.filter(c => c.group == filterSettings.value.group)
   }
-  if (filterSettings.value.text.length>0) {
+  if (filterSettings.value.text.length > 0) {
     const txt = filterSettings.value.text
     filteredClients = filteredClients.filter(c => c.name.search(txt) != -1 || c.desc.search(txt) != -1)
   }
@@ -359,7 +369,7 @@ const doFilter = () => {
       filteredClients = filteredClients.filter(c => c.enable == false)
       break
     case "expired":
-      filteredClients = filteredClients.filter(c => c.expiry > 0 && c.expiry < (Date.now()/1000) )
+      filteredClients = filteredClients.filter(c => c.expiry > 0 && c.expiry < (Date.now() / 1000))
       break
     case "online":
       filteredClients = filteredClients.filter(c => Data().onlines?.user?.includes(c.name))
@@ -392,7 +402,18 @@ const closeBulk = () => {
   addBulkModal.value = false
 }
 
-const percent = (c: Client) => { return c.volume>0 ? Math.round((c.up+c.down) *100 / c.volume) : 0 }
-const percentColor = (c: Client) => { return (c.up+c.down) >= c.volume ? 'error' : percent(c)>90 ? 'warning' : 'success' }
+const percent = (c: Client) => { return c.volume > 0 ? Math.round((c.up + c.down) * 100 / c.volume) : 0 }
+const percentColor = (c: Client) => { return (c.up + c.down) >= c.volume ? 'error' : percent(c) > 90 ? 'warning' : 'success' }
+
+const isToggleDisabled = (item: any) => {
+  const isVolumeExhausted = item.volume > 0 && (item.up + item.down) >= item.volume
+  const isExpired = item.expiry > 0 && item.expiry < (Date.now() / 1000)
+  return isVolumeExhausted || isExpired
+}
+
+const updateClientEnable = async (item: any, value: boolean) => {
+  item.enable = value
+  await Data().save("clients", "edit", item)
+}
 
 </script>
