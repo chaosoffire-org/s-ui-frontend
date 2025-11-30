@@ -1,8 +1,14 @@
 <template>
   <v-dialog transition="dialog-bottom-transition" width="800">
     <v-card class="rounded-lg" :loading="loading">
-      <v-card-title>
-        {{ $t('actions.' + title) + " " + $t('objects.client') }}
+      <v-card-title class="d-flex align-center">
+        <span>{{ $t('actions.' + title) + " " + $t('objects.client') + " (" + clientUuid + ")" }}</span>
+        <v-btn v-if="id > 0" density="compact" variant="text" icon="mdi-refresh" @click="rollUuid" class="ml-2">
+          <v-tooltip activator="parent" location="top">
+            {{ $t('reset') + ' UUID' }}
+          </v-tooltip>
+          <v-icon />
+        </v-btn>
       </v-card-title>
       <v-divider></v-divider>
       <v-skeleton-loader class="mx-auto border" width="95%" type="card, text, divider, list-item-two-line"
@@ -128,7 +134,7 @@
                 <v-col>
                   <v-btn color="primary" @click="subLinks.push({ type: 'sub', uri: '' })">{{ $t('actions.add') }} {{
                     $t('client.sub')
-                  }}</v-btn>
+                    }}</v-btn>
                 </v-col>
               </v-row>
               <v-row v-for="(lnk, index) in subLinks">
@@ -176,6 +182,7 @@ export default {
       extLinks: <Link[]>[],
       subLinks: <Link[]>[],
       displayName: "",
+      clientUuid: "",
     }
   },
   methods: {
@@ -207,6 +214,16 @@ export default {
       const uuidRegex = /-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       this.displayName = this.client.name.replace(uuidRegex, '');
 
+      // Extract or generate UUID
+      const match = this.client.name.match(uuidRegex);
+      if (match) {
+        // Existing client with UUID
+        this.clientUuid = match[0].substring(1); // Remove leading dash
+      } else {
+        // New client or legacy client - generate new UUID
+        this.clientUuid = RandomUtil.randomUUID();
+      }
+
       this.loading = false
     },
     closeModal() {
@@ -230,14 +247,8 @@ export default {
           return;
         }
       } else {
-        const match = originalName.match(uuidRegex);
-        if (match) {
-          // Existing modern client: Keep the original UUID
-          this.client.name = `${this.displayName}${match[0]}`;
-        } else {
-          // New client: Generate a new UUID
-          this.client.name = `${this.displayName}-${RandomUtil.randomUUID()}`;
-        }
+        // Use the clientUuid from data (which may have been rolled)
+        this.client.name = `${this.displayName}-${this.clientUuid}`;
       }
 
       this.client.config = updateConfigs(this.clientConfig, this.client.name)
@@ -256,6 +267,9 @@ export default {
     },
     shuffle(k?: string) {
       shuffleConfigs(this.clientConfig, k)
+    },
+    rollUuid() {
+      this.clientUuid = RandomUtil.randomUUID()
     }
   },
   computed: {
