@@ -24,7 +24,8 @@
             <v-window-item value="t1">
               <v-row>
                 <v-col cols="12" sm="6" md="4">
-                  <v-switch color="primary" v-model="client.enable" :label="$t('enable')" hide-details></v-switch>
+                  <v-switch color="primary" v-model="client.enable" :label="$t('enable')" :disabled="isToggleDisabled"
+                    hide-details></v-switch>
                 </v-col>
                 <v-col cols="12" sm="6" md="4">
                   <v-combobox v-model="client.group" :items="groups" :label="$t('client.group')"
@@ -134,7 +135,7 @@
                 <v-col>
                   <v-btn color="primary" @click="subLinks.push({ type: 'sub', uri: '' })">{{ $t('actions.add') }} {{
                     $t('client.sub')
-                    }}</v-btn>
+                  }}</v-btn>
                 </v-col>
               </v-row>
               <v-row v-for="(lnk, index) in subLinks">
@@ -273,6 +274,12 @@ export default {
     }
   },
   computed: {
+    isToggleDisabled() {
+      const c = this.client;
+      const isVolumeExhausted = c.volume > 0 && (c.up + c.down) >= c.volume;
+      const isExpired = c.expiry > 0 && c.expiry < (Date.now() / 1000);
+      return isVolumeExhausted || isExpired;
+    },
     clientInbounds: {
       get() { return this.client.inbounds.length > 0 ? this.client.inbounds.sort() : [] },
       set(v: number[]) { this.client.inbounds = v.length == 0 ? [] : v.sort() }
