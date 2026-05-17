@@ -4,6 +4,8 @@
 [![License](https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true)](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 > **Disclaimer:** This project is only for personal learning and communication, please do not use it for illegal purposes, please do not use it in a production environment
+>
+> **Fork Notice:** This repository is a fork of [alireza0/s-ui-frontend](https://github.com/alireza0/s-ui-frontend). It is not affiliated with or endorsed by the original author.
 
 ## [Screenshots](./screenshots.md)
 
